@@ -1,47 +1,56 @@
+# 🚀 Express Advanced Cache API (TypeScript)
 
-# 🚀 Express User API (TypeScript)
-
-A high-performance **Express.js + TypeScript API** that simulates user data retrieval with advanced caching, rate limiting, and async processing.
+A high-performance **Express.js + TypeScript API** that simulates user data retrieval with advanced caching, rate limiting, and asynchronous processing.
+Now live at 👉 **[https://express-advanced-cache-api.vercel.app](https://express-advanced-cache-api.vercel.app/)**
 
 ---
 
 ## ✨ Features
 
 * **⚡ High-Performance API** built with Express.js + TypeScript.
-* **🧠 LRU In-Memory Cache (60s TTL)** using `lru-cache` with:
+* **🧠 LRU In-Memory Cache (60s TTL)** with:
 
   * Auto-purging of stale entries.
   * Real-time stats (hits, misses, average response time).
-* **🔄 Concurrent Request Deduplication** — multiple requests for the same user share one in-flight DB call.
+* **🔄 Concurrent Request Deduplication** — multiple requests for the same user share a single in-flight DB fetch.
 * **🧵 Async DB Simulation** — a simple queue mimics database fetch latency (200ms delay).
-* **🚦 Rate Limiting** — per-IP limit of **10 requests/min** with **burst capacity** of 5 requests in 10 seconds.
+* **🚦 Rate Limiting** — per-IP limit of **10 requests/minute** with a **burst capacity** of 5 requests per 10 seconds.
 * **🧰 Developer Friendly**
 
   * Fully typed with TypeScript (`strict` mode).
-  * Modular and maintainable folder structure.
-  * Ready-to-run with a single command.
+  * Modular, readable structure.
+  * Ready-to-run locally or deploy to Vercel.
+
+---
+
+## 🌐 Live Demo
+
+🔗 **Production URL:**
+👉 [https://express-advanced-cache-api.vercel.app](https://express-advanced-cache-api.vercel.app/)
+
+You can open the link above in your browser — it shows a **landing route** with all API endpoints and testing instructions.
 
 ---
 
 ## 🧭 API Endpoints
 
-| Method     | Endpoint        | Description                                                      |
-| :--------- | :-------------- | :--------------------------------------------------------------- |
-| **GET**    | `/`             | Landing route showing available endpoints and usage instructions |
-| **GET**    | `/users/:id`    | Fetch user by ID — cached for 60s; simulated DB delay of 200ms   |
-| **POST**   | `/users`        | Create new mock user (JSON: `{ name, email }`); adds to cache    |
-| **DELETE** | `/cache`        | Manually clear the entire cache                                  |
-| **GET**    | `/cache-status` | View cache stats (hits, misses, size, avg response time)         |
+| Method     | Endpoint        | Description                                                    |
+| :--------- | :-------------- | :------------------------------------------------------------- |
+| **GET**    | `/`             | Landing route showing available endpoints and usage examples   |
+| **GET**    | `/users/:id`    | Fetch user by ID — cached for 60s; simulated DB delay of 200ms |
+| **POST**   | `/users`        | Create new mock user (`{ name, email }`) and cache it          |
+| **DELETE** | `/cache`        | Clear the entire cache                                         |
+| **GET**    | `/cache-status` | View cache stats (hits, misses, size, avg response time)       |
 
 ---
 
-## 🧑‍💻 Quick Start
+## 🧑‍💻 Quick Start (Local Setup)
 
 ### 1️⃣ Install Dependencies
 
 ```bash
-git clone https://github.com/your-username/express-user-api.git
-cd express-user-api
+git clone https://github.com/your-username/express-advanced-cache-api.git
+cd express-advanced-cache-api
 pnpm install   # or npm install
 ```
 
@@ -51,11 +60,11 @@ pnpm install   # or npm install
 pnpm dev
 ```
 
-The server starts at 👉 **[http://localhost:8000](http://localhost:8000)**
+Server starts at 👉 **[http://localhost:8000](http://localhost:8000)**
 
 ---
 
-## 🧪 Test the API
+## 🧪 Testing the API (curl / Postman)
 
 ### Fetch a user (first = DB, next = cache)
 
@@ -88,32 +97,32 @@ curl -X DELETE http://localhost:8000/cache
 ## ⚙️ How It Works
 
 * **Caching Layer:**
-  Uses `lru-cache` with a 60s TTL and `setInterval()` background cleanup to remove stale entries.
+  Uses `lru-cache` with 60s TTL + background cleanup for expired entries.
 
-* **Asynchronous Processing:**
-  Each DB fetch is simulated with a 200ms delay via a simple queue abstraction.
+* **Asynchronous Queue:**
+  Simulates a 200ms database delay using a simple promise-based queue.
 
 * **Concurrent Requests:**
-  In-flight requests for the same user are tracked in a `Map<string, Promise<User | null>>` — preventing redundant fetches.
+  All requests for the same user ID share one in-flight Promise to avoid duplicate DB fetches.
 
 * **Rate Limiting:**
-  Implements a timestamp-based sliding window limiter allowing:
+  Timestamp-based sliding window limiter:
 
-  * 10 requests per minute per IP
-  * 5-request burst within 10 seconds
-    Returns `429 Too Many Requests` if exceeded.
+  * 10 requests/min per IP
+  * 5-request burst every 10 seconds
+    Returns `429 Too Many Requests` when exceeded.
 
 ---
 
 ## 🧩 Project Structure
 
 ```
-express-user-api/
+express-advanced-cache-api/
 ├─ src/
-│  ├─ index.ts               # Main Express app
+│  ├─ index.ts               # Main Express app and routes
 │  └─ services/
-│     ├─ cache.ts            # LRU cache with stats
-│     ├─ mockData.ts         # Mock user data & DB simulation
+│     ├─ cache.ts            # LRU cache + TTL logic
+│     ├─ mockData.ts         # Mock user data & simulated DB
 │     ├─ queue.ts            # Async queue abstraction
 │     └─ rateLimiter.ts      # In-memory rate limiter
 ├─ package.json
@@ -126,18 +135,20 @@ express-user-api/
 
 ## 🧱 Technical Notes
 
-* Built with **TypeScript strict mode** enabled for reliability.
-* `lru-cache` provides **LRU eviction** + **TTL expiration**.
-* Rate limiting is **in-memory** (suitable for single-instance apps).
-  Use Redis + `rate-limiter-flexible` for distributed environments.
-* Async flow ensures non-blocking request handling.
-* Ready for monitoring expansion (e.g., Prometheus metrics).
+* Built with **TypeScript strict mode** for reliability.
+* `lru-cache` handles TTL + least-recently-used eviction efficiently.
+* In-memory rate limiter — perfect for single-instance use.
+* Easily extendable for:
+
+  * Redis-based distributed caching
+  * `rate-limiter-flexible` for global throttling
+  * Prometheus or Grafana monitoring
 
 ---
 
 ## 🧠 Example Landing Route
 
-When visiting the root route `/`, you’ll see:
+When visiting the root route `/`, you’ll see a helpful API guide like this:
 
 ```json
 {
@@ -161,6 +172,6 @@ When visiting the root route `/`, you’ll see:
 
 ## 🧾 License
 
-MIT License © 2025 Mateshwari
+MIT License © 2025 Mateshwari verma
+Live Demo: [https://express-advanced-cache-api.vercel.app](https://express-advanced-cache-api.vercel.app/)
 
-# express-advanced-cache-api
